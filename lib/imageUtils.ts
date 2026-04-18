@@ -25,8 +25,9 @@ export function getDirectImageUrl(url: string | undefined): string {
     }
 
     if (fileId) {
-      // Using the most reliable direct link format
-      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+      // thumbnail?id= format is more resilient for high-resolution images 
+      // and often bypasses the "virus scan" warning screen which blocks regular 'uc' links.
+      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`;
     }
   }
 
