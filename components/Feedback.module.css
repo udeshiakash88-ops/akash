@@ -54,9 +54,13 @@
 .marqueeShell {
   position: relative;
   overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
   width: 100%;
+  touch-action: pan-x pinch-zoom;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
 .marqueeShell::-webkit-scrollbar {
@@ -69,48 +73,6 @@
   width: max-content;
   padding: 1.5rem 6%;
   will-change: transform;
-}
-
-.controls {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  transform: translateY(-50%);
-  display: flex;
-  justify-content: space-between;
-  padding: 0 2rem;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.navBtn {
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(176, 125, 98, 0.2);
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  pointer-events: auto;
-  transition: all 0.3s ease;
-  font-size: 1.2rem;
-  box-shadow: 0 8px 32px rgba(45, 35, 29, 0.12);
-}
-
-.navBtn:hover {
-  background: var(--accent-color);
-  border-color: var(--accent-color);
-  color: white;
-  transform: scale(1.1);
-}
-
-.navBtn:active {
-  transform: scale(0.95);
 }
 
 .edgeFadeLeft,
@@ -255,23 +217,9 @@
   text-align: right;
 }
 
-@keyframes scrollLeft {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(calc(-50% - 0.75rem));
-  }
-}
-
 @media (max-width: 1024px) {
   .feedbackContainer {
     padding: 7rem 0;
-  }
-
-  .marqueeTrack {
-    animation-duration: 34s;
   }
 }
 
@@ -294,9 +242,7 @@
   }
 
   .marqueeTrack {
-    gap: 1rem;
-    padding: 1rem 6%;
-    width: max-content;
+    padding: 1rem 5%;
   }
 
   .edgeFadeLeft,
@@ -320,13 +266,10 @@
     align-items: flex-start;
   }
 
-  .controls {
-    display: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .marqueeTrack {
-    animation-duration: 60s;
+    scroll-behavior: auto;
   }
 }

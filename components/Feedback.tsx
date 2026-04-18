@@ -1,20 +1,34 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+"use client";
+
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { getDirectImageUrl } from '@/lib/imageUtils'; // Assuming avatars might use this if they are URLs
 import styles from './Feedback.module.css';
 
+interface FeedbackItem {
+  _id?: string;
+  id?: number;
+  avatar: string;
+  brand: string;
+  metric: string;
+  name: string;
+  role: string;
+  text: string;
+}
+
 export default function Feedback() {
-  const [feedbackList, setFeedbackList] = useState<any[]>([]);
+  const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
   const [isPaused, setIsPaused] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const requestRef = useRef<number>(null);
+  const resumeTimeoutRef = useRef<number | null>(null);
+  const isPointerDownRef = useRef(false);
 
   useEffect(() => {
     fetch("/api/feedback")
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          setFeedbackList(data);
+          // Double the list for seamless looping
+          setFeedbackList([...data, ...data]);
         } else {
           setFeedbackList([]);
         }
@@ -22,45 +36,61 @@ export default function Feedback() {
       .catch(() => setFeedbackList([]));
   }, []);
 
-  const animate = useCallback(() => {
-    if (!scrollContainerRef.current || isPaused) {
-      requestRef.current = requestAnimationFrame(animate);
-      return;
-    }
-
-    const container = scrollContainerRef.current;
-    container.scrollLeft += 0.6; // Slightly slower speed for reading
-
-    if (container.scrollLeft >= container.scrollWidth / 2) {
-      container.scrollLeft = 0;
-    }
-
-    requestRef.current = requestAnimationFrame(animate);
-  }, [isPaused]);
-
   useEffect(() => {
-    requestRef.current = requestAnimationFrame(animate);
-    return () => {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
-    };
-  }, [animate]);
-
-  const handleScroll = (direction: 'left' | 'right') => {
-    if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
-    const cardWidth = container.querySelector(`.${styles.card}`)?.clientWidth || 360;
-    const scrollAmount = cardWidth + 24; // card + gap
-    
-    container.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth'
-    });
+    if (!container || feedbackList.length <= 1) return;
+
+    let animationFrameId: number;
+    const speed = 1.0; // Higher = faster
+
+    const scroll = () => {
+      if (!isPaused && !isPointerDownRef.current) {
+        container.scrollLeft += speed;
+
+        // Create the seamless loop effect
+        // When we reach the half-way point (the end of the first list),
+        // we snap back to the start. The second copy ensures no gap.
+        if (container.scrollLeft >= container.scrollWidth / 2) {
+          container.scrollLeft = 0;
+        }
+      }
+      animationFrameId = requestAnimationFrame(scroll);
+    };
+
+    animationFrameId = requestAnimationFrame(scroll);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isPaused, feedbackList.length]);
+
+  const scheduleResume = () => {
+    if (resumeTimeoutRef.current) window.clearTimeout(resumeTimeoutRef.current);
+    resumeTimeoutRef.current = window.setTimeout(() => {
+      isPointerDownRef.current = false;
+      setIsPaused(false);
+    }, 1500);
+  };
+
+  const handlePointerStart = () => {
+    isPointerDownRef.current = true;
+    setIsPaused(true);
+  };
+
+  const handlePointerEnd = () => {
+    scheduleResume();
+  };
+
+  const handleHoverStart = () => {
+    if (!isPointerDownRef.current) {
+      setIsPaused(true);
+    }
+  };
+
+  const handleHoverEnd = () => {
+    if (!isPointerDownRef.current) {
+      setIsPaused(false);
+    }
   };
 
   if (feedbackList.length === 0) return null;
-
-  // Duplicate for infinite scroll
-  const marqueeTestimonials = [...feedbackList, ...feedbackList];
 
   return (
     <section className={styles.feedbackContainer}>
@@ -82,37 +112,20 @@ export default function Feedback() {
       <div 
         className={styles.marqueeShell}
         ref={scrollContainerRef}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onTouchStart={() => setIsPaused(true)}
-        onTouchEnd={() => setIsPaused(false)}
+        onMouseEnter={handleHoverStart}
+        onMouseLeave={handleHoverEnd}
+        onPointerDown={handlePointerStart}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
       >
         <div className={styles.edgeFadeLeft} aria-hidden="true" />
         <div className={styles.edgeFadeRight} aria-hidden="true" />
 
-        <div className={styles.controls}>
-          <button 
-            className={`${styles.navBtn} ${styles.prev}`} 
-            onClick={() => handleScroll('left')}
-            aria-label="Previous testimonial"
-          >
-            ←
-          </button>
-          <button 
-            className={`${styles.navBtn} ${styles.next}`} 
-            onClick={() => handleScroll('right')}
-            aria-label="Next testimonial"
-          >
-            →
-          </button>
-        </div>
-
         <div className={styles.marqueeTrack}>
-          {marqueeTestimonials.map((item, index) => (
+          {feedbackList.map((item, index) => (
             <article
               key={`${item._id ?? item.id}-${index}`}
               className={styles.card}
-              aria-hidden={index >= feedbackList.length}
             >
               <div className={styles.cardTopLine} />
               <div className={styles.cardHeader}>
@@ -124,7 +137,11 @@ export default function Feedback() {
               </div>
 
               <p className={styles.rating}>★★★★★</p>
-              <p className={styles.feedbackText}>"{item.text}"</p>
+              <p className={styles.feedbackText}>
+                <span aria-hidden="true">&ldquo;</span>
+                {item.text}
+                <span aria-hidden="true">&rdquo;</span>
+              </p>
 
               <div className={styles.cardFooter}>
                 <span className={styles.brand}>{item.brand}</span>

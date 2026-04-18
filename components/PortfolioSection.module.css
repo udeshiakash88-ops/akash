@@ -51,10 +51,14 @@
 
 .marqueeShell {
   position: relative;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
   width: 100%;
+  touch-action: pan-x pinch-zoom;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
 .marqueeShell::-webkit-scrollbar {
@@ -64,16 +68,17 @@
 .marqueeTrack {
   display: flex;
   align-items: stretch;
+  gap: 1.25rem;
   width: max-content;
-  padding: 1.5rem 0;
+  padding: 1.5rem 6%;
   will-change: transform;
-  animation: workScrollLeft 28s linear infinite;
 }
 
 .marqueeGroup {
   display: flex;
   gap: 1.25rem;
   padding-right: 1.25rem;
+  flex-shrink: 0;
 }
 
 .edgeFadeLeft,
@@ -81,20 +86,19 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 0;
+  width: 5rem;
   z-index: 2;
   pointer-events: none;
-  display: none;
 }
 
 .edgeFadeLeft {
   left: 0;
-  background: transparent;
+  background: linear-gradient(90deg, var(--bg-color), rgba(245, 239, 230, 0));
 }
 
 .edgeFadeRight {
   right: 0;
-  background: transparent;
+  background: linear-gradient(270deg, var(--bg-color), rgba(245, 239, 230, 0));
 }
 
 .card {
@@ -221,63 +225,6 @@
   font-weight: 600;
 }
 
-@keyframes workScrollLeft {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-.controls {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  transform: translateY(-50%);
-  display: flex;
-  justify-content: space-between;
-  padding: 0 2rem;
-  pointer-events: none;
-  z-index: 10;
-  display: none;
-}
-
-.navBtn {
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  pointer-events: auto;
-  transition: all 0.3s ease;
-  font-size: 1.2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-}
-
-.navBtn:hover {
-  background: var(--accent-color);
-  border-color: var(--accent-color);
-  transform: scale(1.1);
-}
-
-.navBtn:active {
-  transform: scale(0.95);
-}
-
-@media (max-width: 1024px) {
-  .marqueeTrack {
-    animation-duration: 28s;
-  }
-}
-
 @media (max-width: 768px) {
   .portfolioContainer {
     padding: 6rem 0;
@@ -297,23 +244,12 @@
   }
 
   .marqueeTrack {
-    gap: 1rem;
-    padding: 1rem 0;
-    animation-duration: 24s;
+    padding: 1rem 5%;
   }
 
   .edgeFadeLeft,
   .edgeFadeRight {
-    width: 0;
-  }
-
-  .marqueeTrack {
-    padding: 1.5rem 0;
-    width: max-content;
-  }
-
-  .controls {
-    display: none; /* Hide buttons on mobile in favor of native touch swipe */
+    display: none;
   }
 
   .card {
@@ -337,6 +273,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .marqueeTrack {
-    animation-duration: 60s;
+    scroll-behavior: auto;
   }
 }
