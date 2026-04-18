@@ -1,0 +1,293 @@
+.portfolioContainer {
+  padding: 9rem 0;
+  background: var(--bg-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.backgroundGlow {
+  position: absolute;
+  inset: 7rem 15% auto;
+  height: 16rem;
+  background: radial-gradient(circle at center, rgba(176, 125, 98, 0.15), transparent 70%);
+  filter: blur(22px);
+  pointer-events: none;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 3.5rem;
+  padding: 0 6%;
+  position: relative;
+  z-index: 1;
+}
+
+.label {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  color: var(--accent-color);
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 400;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  max-width: 38rem;
+  margin: 0 auto;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.8;
+  color: rgba(45, 35, 29, 0.72);
+}
+
+.marqueeShell {
+  position: relative;
+  overflow: hidden;
+}
+
+.marqueeTrack {
+  display: flex;
+  align-items: stretch;
+  width: max-content;
+  padding: 1.5rem 0;
+  animation: workScrollLeft 34s linear infinite;
+  will-change: transform;
+}
+
+.marqueeGroup {
+  display: flex;
+  gap: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.marqueeShell:hover .marqueeTrack {
+  animation-play-state: paused;
+}
+
+.edgeFadeLeft,
+.edgeFadeRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 7rem;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.edgeFadeLeft {
+  left: 0;
+  background: linear-gradient(90deg, var(--bg-color), rgba(245, 239, 230, 0));
+}
+
+.edgeFadeRight {
+  right: 0;
+  background: linear-gradient(270deg, var(--bg-color), rgba(245, 239, 230, 0));
+}
+
+.card {
+  position: relative;
+  width: min(19rem, calc(100vw - 4rem));
+  aspect-ratio: 9/16;
+  overflow: hidden;
+  background: #eee;
+  border-radius: 1.6rem;
+  flex-shrink: 0;
+  box-shadow: 0 18px 45px rgba(45, 35, 29, 0.12);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 28px 70px rgba(45, 35, 29, 0.18);
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: var(--transition);
+}
+
+.image {
+  object-fit: cover;
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(45, 35, 29, 0) 0%,
+    rgba(45, 35, 29, 0.4) 50%,
+    rgba(45, 35, 29, 0.9) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.6rem;
+  opacity: 1;
+  transition: background 0.35s ease;
+  transform: none;
+}
+
+.card:hover .overlay {
+  background: linear-gradient(
+    to bottom,
+    rgba(45, 35, 29, 0.08) 0%,
+    rgba(45, 35, 29, 0.45) 45%,
+    rgba(45, 35, 29, 0.96) 100%
+  );
+}
+
+.card:hover .image {
+  transform: scale(1.1);
+}
+
+.playBadge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+  width: 3rem;
+  height: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(20, 18, 16, 0.42);
+  backdrop-filter: blur(10px);
+  color: white;
+  font-size: 0.9rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.projectCategory {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-color);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+}
+
+.projectTitle {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  color: white;
+  font-weight: 400;
+  margin-bottom: 1.4rem;
+}
+
+.cardStats {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.statVal {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 500;
+  font-family: var(--font-serif);
+}
+
+.statLabel {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+@keyframes workScrollLeft {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 1024px) {
+  .marqueeTrack {
+    animation-duration: 28s;
+  }
+}
+
+@media (max-width: 768px) {
+  .portfolioContainer {
+    padding: 6rem 0;
+  }
+
+  .header {
+    margin-bottom: 2.5rem;
+    padding: 0 5%;
+  }
+
+  .title {
+    font-size: 2.2rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .marqueeTrack {
+    gap: 1rem;
+    padding: 1rem 0;
+    animation-duration: 24s;
+  }
+
+  .marqueeGroup {
+    gap: 1rem;
+    padding-right: 1rem;
+  }
+
+  .edgeFadeLeft,
+  .edgeFadeRight {
+    width: 3rem;
+  }
+
+  .card {
+    width: min(16rem, calc(100vw - 3rem));
+    border-radius: 1.25rem;
+  }
+
+  .overlay {
+    padding: 1.2rem;
+  }
+
+  .projectTitle {
+    font-size: 1.2rem;
+  }
+
+  .playBadge {
+    width: 2.65rem;
+    height: 2.65rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marqueeTrack {
+    animation-duration: 60s;
+  }
+}
