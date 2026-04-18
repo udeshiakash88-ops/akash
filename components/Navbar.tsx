@@ -91,7 +91,7 @@ export default function Navbar() {
           <span className="logo-circle">A</span>
         )}
         <span className={styles.logoText}>
-          {settings?.heroTitle?.split(' ')[0] || "Vision"} <span className={styles.lower}>{settings?.heroTitle?.split(' ')[1] || "of"}</span> {settings?.heroTitle?.split(' ').slice(2).join(' ') || "Akash"}
+          {settings?.heroTitle || "Vision of Akash"}
         </span>
       </Link>
 

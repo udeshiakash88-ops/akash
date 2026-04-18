@@ -45,17 +45,9 @@
 .logoText {
   font-family: var(--font-serif);
   font-size: 1.35rem;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: -0.01em;
   line-height: 1;
-}
-
-.lower {
-  font-style: italic;
-  font-size: 0.88em;
-  opacity: 0.6;
-  font-weight: 300;
-  margin: 0 1px;
 }
 
 .links {

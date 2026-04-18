@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getDirectImageUrl, getInstagramCoverUrl } from "@/lib/imageUtils";
+import ImageCropperModal from "@/components/ImageCropperModal";
 
 interface Project { _id?: string; title: string; category: string; image: string; link: string; stats: { likes: string; views: string }; order: number; }
 interface Education { _id?: string; degree: string; short: string; year: string; status?: string; statusType: 'done' | 'current' | 'future'; icon: string; schoolName: string; schoolShort: string; location: string; order: number; }
@@ -36,6 +37,11 @@ export default function AdminDashboard() {
   const [securityMsg, setSecurityMsg] = useState("");
   const [securityLoading, setSecurityLoading] = useState(false);
   const [uploadingField, setUploadingField] = useState<string | null>(null);
+
+  // Image Cropping State
+  const [cropImage, setCropImage] = useState<string | null>(null);
+  const [cropAspect, setCropAspect] = useState<number>(1);
+  const [onCropCompleteRef, setOnCropCompleteRef] = useState<{ callback: (blob: Blob) => void } | null>(null);
 
   function getToken() {
     return typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
@@ -197,10 +203,22 @@ export default function AdminDashboard() {
     }
   }
 
-  async function uploadImage(fieldName: string, file: File, onSuccess: (url: string) => void) {
+  function initiateCrop(file: File, aspect: number, onComplete: (blob: Blob) => void) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImage(reader.result as string);
+      setCropAspect(aspect);
+      setOnCropCompleteRef({ callback: onComplete });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function uploadImage(fieldName: string, fileOrBlob: File | Blob, onSuccess: (url: string) => void) {
     setUploadingField(fieldName);
     try {
       const fd = new FormData();
+      // Use random name if it's a blob from cropper
+      const file = fileOrBlob instanceof File ? fileOrBlob : new File([fileOrBlob], `upload-${Date.now()}.jpg`, { type: 'image/jpeg' });
       fd.append('file', file);
       const res = await fetch('/api/upload', {
         method: 'POST',
@@ -340,7 +358,7 @@ export default function AdminDashboard() {
                     <input style={inputStyle} placeholder="Thumbnail Image URL (empty rakhso to reel cover auto aavse)" value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} />
                     <label style={{ flexShrink: 0, padding: "0.6rem 1rem", background: uploadingField === 'image' ? "#d1c1b1" : "#b07d62", color: "white", borderRadius: 8, cursor: uploadingField === 'image' ? "not-allowed" : "pointer", fontSize: "0.8rem", fontWeight: 700, whiteSpace: "nowrap" }}>
                       {uploadingField === 'image' ? '⏳...' : '📁 Upload'}
-                      <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage('image', f, url => setFormData((p: any) => ({ ...p, image: url }))); e.target.value = ''; }} />
+                      <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) initiateCrop(f, 9/16, blob => uploadImage('image', blob, url => setFormData((p: any) => ({ ...p, image: url })))); e.target.value = ''; }} />
                     </label>
                   </div>
                 </div>
@@ -411,7 +429,7 @@ export default function AdminDashboard() {
                   <input style={inputStyle} placeholder="Avatar Image URL" value={formData.avatar || ''} onChange={e => setFormData({ ...formData, avatar: e.target.value })} />
                   <label style={{ flexShrink: 0, padding: "0.6rem 1rem", background: uploadingField === 'avatar' ? "#d1c1b1" : "#b07d62", color: "white", borderRadius: 8, cursor: uploadingField === 'avatar' ? "not-allowed" : "pointer", fontSize: "0.8rem", fontWeight: 700, whiteSpace: "nowrap" }}>
                     {uploadingField === 'avatar' ? '⏳...' : '📁 Upload'}
-                    <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage('avatar', f, url => setFormData((p: any) => ({ ...p, avatar: url }))); e.target.value = ''; }} />
+                    <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) initiateCrop(f, 1/1, blob => uploadImage('avatar', blob, url => setFormData((p: any) => ({ ...p, avatar: url })))); e.target.value = ''; }} />
                   </label>
                 </div>
                 <textarea style={{ ...inputStyle, gridColumn: "1 / -1" }} placeholder="Feedback Text" value={formData.text} onChange={e => setFormData({ ...formData, text: e.target.value })} />
@@ -454,7 +472,7 @@ export default function AdminDashboard() {
                     <input style={inputStyle} placeholder="Logo Image URL" value={formData.logoImage || ''} onChange={e => setFormData({ ...formData, logoImage: e.target.value })} />
                     <label style={{ flexShrink: 0, padding: "0.6rem 1rem", background: uploadingField === 'logoImage' ? "#d1c1b1" : "#b07d62", color: "white", borderRadius: 8, cursor: uploadingField === 'logoImage' ? "not-allowed" : "pointer", fontSize: "0.8rem", fontWeight: 700, whiteSpace: "nowrap", userSelect: "none" }}>
                       {uploadingField === 'logoImage' ? '⏳...' : '📁 Upload'}
-                      <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage('logoImage', f, url => setFormData((p: any) => ({ ...p, logoImage: url }))); e.target.value = ''; }} />
+                      <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) initiateCrop(f, 1/1, blob => uploadImage('logoImage', blob, url => setFormData((p: any) => ({ ...p, logoImage: url })))); e.target.value = ''; }} />
                     </label>
                   </div>
                   <div>
@@ -483,7 +501,7 @@ export default function AdminDashboard() {
                     <input style={inputStyle} placeholder="Hero Image URL" value={formData.heroImage || ''} onChange={e => setFormData({ ...formData, heroImage: e.target.value })} />
                     <label style={{ flexShrink: 0, padding: "0.6rem 1rem", background: uploadingField === 'heroImage' ? "#d1c1b1" : "#b07d62", color: "white", borderRadius: 8, cursor: uploadingField === 'heroImage' ? "not-allowed" : "pointer", fontSize: "0.8rem", fontWeight: 700, whiteSpace: "nowrap" }}>
                       {uploadingField === 'heroImage' ? '⏳...' : '📁 Upload'}
-                      <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage('heroImage', f, url => setFormData((p: any) => ({ ...p, heroImage: url }))); e.target.value = ''; }} />
+                      <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) initiateCrop(f, 16/9, blob => uploadImage('heroImage', blob, url => setFormData((p: any) => ({ ...p, heroImage: url })))); e.target.value = ''; }} />
                     </label>
                   </div>
 
@@ -548,7 +566,7 @@ export default function AdminDashboard() {
                     <input style={inputStyle} placeholder="Profile Image URL (About section)" value={formData.aboutImage || ''} onChange={e => setFormData({ ...formData, aboutImage: e.target.value })} />
                     <label style={{ flexShrink: 0, padding: "0.6rem 1rem", background: uploadingField === 'aboutImage' ? "#d1c1b1" : "#b07d62", color: "white", borderRadius: 8, cursor: uploadingField === 'aboutImage' ? "not-allowed" : "pointer", fontSize: "0.8rem", fontWeight: 700, whiteSpace: "nowrap" }}>
                       {uploadingField === 'aboutImage' ? '⏳...' : '📁 Upload'}
-                      <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage('aboutImage', f, url => setFormData((p: any) => ({ ...p, aboutImage: url }))); e.target.value = ''; }} />
+                      <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) initiateCrop(f, 1/1, blob => uploadImage('aboutImage', blob, url => setFormData((p: any) => ({ ...p, aboutImage: url })))); e.target.value = ''; }} />
                     </label>
                   </div>
 
@@ -665,6 +683,24 @@ export default function AdminDashboard() {
         )
         )}
       </div>
+      {/* Image Cropper Modal */}
+      {cropImage && (
+        <ImageCropperModal
+          image={cropImage}
+          aspect={cropAspect}
+          onCropComplete={(blob) => {
+            if (onCropCompleteRef) {
+              onCropCompleteRef.callback(blob);
+              setCropImage(null);
+              setOnCropCompleteRef(null);
+            }
+          }}
+          onClose={() => {
+            setCropImage(null);
+            setOnCropCompleteRef(null);
+          }}
+        />
+      )}
     </div>
   );
 }

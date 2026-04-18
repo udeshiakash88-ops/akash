@@ -98,10 +98,12 @@ export default function Services() {
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          const mapped = data.map((s: any) => ({
-            ...s,
-            icon: (icons as any)[s.icon] || icons.film
-          }));
+          const mapped = data
+            .filter((s: any) => s.title !== "Freelancing")
+            .map((s: any) => ({
+              ...s,
+              icon: (icons as any)[s.icon] || icons.film
+            }));
           setServiceList(mapped);
         } else {
           setServiceList([]);
