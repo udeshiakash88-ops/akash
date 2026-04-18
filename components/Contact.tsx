@@ -92,7 +92,7 @@ const Contact = () => {
           </p>
 
           <div className={styles.infoList}>
-            {contactDetails.map((item) => (
+            {contactDetails.map((item) => item && (
               <div className={styles.infoItem} key={item.label}>
                 <span className={styles.infoIcon}>{item.icon}</span>
                 <div className={styles.infoText}>

@@ -86,7 +86,7 @@ const cardVariants = {
   hidden: { opacity: 0, y: 30 },
   visible: (i: number) => ({
     opacity: 1, y: 0,
-    transition: { duration: 0.55, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.55, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] as any },
   }),
 };
 
@@ -138,7 +138,7 @@ export default function Services() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] as any }}
         >
           <div className={styles.featuredLeft}>
             <span className={styles.featuredTag}>{activeFeatured.tag}</span>
