@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { getDirectImageUrl } from '@/lib/imageUtils';
 import styles from './AboutMe.module.css';
 
 const icons = {
@@ -78,7 +79,7 @@ const AboutMe = () => {
             <div className={styles.imageOverlay}></div>
             {aboutImage ? (
               <Image
-                src={aboutImage}
+                src={getDirectImageUrl(aboutImage)}
                 alt="Akash Official Profile"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { getDirectImageUrl } from "@/lib/imageUtils";
 
 interface Project { _id?: string; title: string; category: string; image: string; link: string; stats: { likes: string; views: string }; order: number; }
 interface Education { _id?: string; degree: string; short: string; year: string; status?: string; statusType: 'done' | 'current' | 'future'; icon: string; schoolName: string; schoolShort: string; location: string; order: number; }
@@ -402,7 +403,7 @@ export default function AdminDashboard() {
 
                   {formData.heroImage && (
                     <img
-                      src={formData.heroImage}
+                      src={getDirectImageUrl(formData.heroImage)}
                       alt="Hero preview"
                       style={{ gridColumn: "1 / -1", width: "100%", maxWidth: 320, height: 180, objectFit: "cover", borderRadius: 10, border: "1.5px solid #d1c1b1", background: "#faf7f3" }}
                     />
@@ -461,7 +462,7 @@ export default function AdminDashboard() {
 
                   {formData.aboutImage && (
                     <img
-                      src={formData.aboutImage}
+                      src={getDirectImageUrl(formData.aboutImage)}
                       alt="About preview"
                       style={{ width: "100%", maxWidth: 280, height: 180, objectFit: "cover", borderRadius: 10, border: "1.5px solid #d1c1b1", background: "#faf7f3" }}
                     />
@@ -536,7 +537,7 @@ export default function AdminDashboard() {
                   boxShadow: "0 2px 10px rgba(45,35,29,0.06)"
                 }}>
                   {displayImg ? (
-                    <img src={displayImg} alt="" style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 8, flexShrink: 0, background: "#f5efe6" }} />
+                    <img src={getDirectImageUrl(displayImg)} alt="" style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 8, flexShrink: 0, background: "#f5efe6" }} />
                   ) : (
                     <div style={{ width: 50, height: 50, borderRadius: 8, background: "#f5efe6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem", flexShrink: 0 }}>
                       {item.icon ? "✨" : "📄"}

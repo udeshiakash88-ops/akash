@@ -2,6 +2,7 @@
 
 import { motion, useTransform, MotionValue } from "framer-motion";
 import Image from "next/image";
+import { getDirectImageUrl } from "@/lib/imageUtils";
 
 interface HeroVisualsProps {
   scrollYProgress: MotionValue<number>;
@@ -11,13 +12,15 @@ interface HeroVisualsProps {
 export default function HeroVisuals({ scrollYProgress, heroImage }: HeroVisualsProps) {
   const heroParallax = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
   const frame2Y = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
+  
+  const displayImage = getDirectImageUrl(heroImage);
 
   return (
     <div className="hero-right">
       <motion.div className="hero-img-wrap layer-main" style={{ y: heroParallax }}>
-        {heroImage ? (
+        {displayImage ? (
           <Image
-            src={heroImage}
+            src={displayImage}
             alt="Akash Portrait"
             fill
             style={{ objectFit: 'cover', objectPosition: 'center 5%' }}
@@ -36,9 +39,9 @@ export default function HeroVisuals({ scrollYProgress, heroImage }: HeroVisualsP
           />
         )}
       </motion.div>
-      {heroImage && (
+      {displayImage && (
         <motion.div className="hero-img-accent frame-2" style={{ y: frame2Y }}>
-          <Image src={heroImage} alt="Frame 2" fill style={{ objectFit: 'cover' }} unoptimized />
+          <Image src={displayImage} alt="Frame 2" fill style={{ objectFit: 'cover' }} unoptimized />
         </motion.div>
       )}
       <div className="img-fade-left"></div>

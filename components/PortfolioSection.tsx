@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { getDirectImageUrl } from '@/lib/imageUtils';
 import styles from './PortfolioSection.module.css';
 
 interface Project {
@@ -67,7 +68,7 @@ const PortfolioSection = () => {
                   <span className={styles.playBadge} aria-hidden="true">▶</span>
                   <div className={styles.imageWrapper}>
                     <Image 
-                      src={project.image} 
+                      src={getDirectImageUrl(project.image)} 
                       alt={project.title} 
                       fill 
                       className={styles.image}
