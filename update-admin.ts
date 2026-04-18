@@ -1,12 +1,13 @@
-import dbConnect from './lib/dbConnect';
-import Admin from './models/Admin';
-import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load env vars
+// Load env vars first
 dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 dotenv.config({ path: path.join(process.cwd(), '.env') });
+
+import dbConnect from './lib/dbConnect';
+import Admin from './models/Admin';
+import bcrypt from 'bcryptjs';
 
 async function updateAdmin() {
   try {
