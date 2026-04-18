@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Project from '@/models/Project';
 import { verifyToken } from '@/lib/auth';
+import { getInstagramCoverUrl } from '@/lib/imageUtils';
 
 // GET — public, returns all projects
 export async function GET() {
@@ -23,6 +24,12 @@ export async function POST(request: NextRequest) {
   try {
     await dbConnect();
     const body = await request.json();
+
+    // Thumbnail is optional. If missing, derive from reel URL (or fallback asset).
+    if (!body.image || !String(body.image).trim()) {
+      body.image = getInstagramCoverUrl(body.link) || '/assets/img3.jpeg';
+    }
+
     const project = await Project.create(body);
     return NextResponse.json(project, { status: 201 });
   } catch (err: unknown) {

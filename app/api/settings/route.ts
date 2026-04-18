@@ -24,13 +24,18 @@ export async function POST(request: NextRequest) {
   try {
     await dbConnect();
     const body = await request.json();
+    
+    // Clean body: strip fields that MongoDB forbids updating
+    const { _id, __v, ...updateData } = body;
+    
     let settings = await GlobalSettings.findOne({});
     if (settings) {
-      await GlobalSettings.findByIdAndUpdate(settings._id, body);
+      const updated = await GlobalSettings.findByIdAndUpdate(settings._id, updateData, { new: true });
+      return NextResponse.json({ success: true, settings: updated });
     } else {
-      await GlobalSettings.create(body);
+      const created = await GlobalSettings.create(updateData);
+      return NextResponse.json({ success: true, settings: created });
     }
-    return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ error: 'Failed to update settings: ' + err.message }, { status: 500 });
   }

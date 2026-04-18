@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { getDirectImageUrl } from "@/lib/imageUtils";
 import styles from "./Navbar.module.css";
 
 interface NavbarSettings {
   heroTitle?: string;
+  logoImage?: string;
 }
 
 export default function Navbar() {
@@ -66,19 +68,28 @@ export default function Navbar() {
 
   const navLinks = [
     { name: "Home", href: "#home" },
-    { name: "About", href: "#about" },
     { name: "Services", href: "#services" },
-    { name: "Education", href: "#education" },
-    { name: "Gear", href: "#gear" },
     { name: "Portfolio", href: "#portfolio" },
-    { name: "Feedback", href: "#feedback" },
+    { name: "Gear", href: "#gear" },
     { name: "Contact", href: "#contact" },
+    { name: "Education", href: "#education" },
+    { name: "Feedback", href: "#feedback" },
+    { name: "About", href: "#about" },
   ];
 
   return (
     <header className={`${styles.navbarContainer} ${isScrolled ? styles.scrolled : ""}`}>
       <Link href="/#" className={styles.logoLink} onClick={closeMenu}>
-        <span className="logo-circle">A</span>
+        {settings?.logoImage ? (
+          <img 
+            src={getDirectImageUrl(settings.logoImage)} 
+            alt="Logo" 
+            className={styles.logoImage}
+            style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "1.5px solid var(--accent-color)" }}
+          />
+        ) : (
+          <span className="logo-circle">A</span>
+        )}
         <span className={styles.logoText}>
           {settings?.heroTitle?.split(' ')[0] || "Vision"} <span className={styles.lower}>{settings?.heroTitle?.split(' ')[1] || "of"}</span> {settings?.heroTitle?.split(' ').slice(2).join(' ') || "Akash"}
         </span>

@@ -109,8 +109,8 @@ export default function Education() {
         whileInView="visible"
         viewport={{ once: true, margin: "-60px" }}
       >
-        {degreeList.map((d) => (
-          <motion.div key={d.id} className={styles.card} variants={cardVariants}>
+        {degreeList.map((d, i) => (
+          <motion.div key={d._id || i} className={styles.card} variants={cardVariants}>
             <div className={styles.cardTop}>
               <span className={styles.degIcon}>{d.icon}</span>
               {d.status && (

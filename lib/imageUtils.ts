@@ -8,31 +8,35 @@ export function getDirectImageUrl(url: string | undefined): string {
   const trimmedUrl = url.trim();
 
   // Handle Google Drive links
-  if (trimmedUrl.includes("drive.google.com")) {
-    let fileId = "";
-    
-    // Pattern 1: https://drive.google.com/file/d/FILE_ID/view...
-    // Pattern 2: https://drive.google.com/open?id=FILE_ID
-    // Pattern 3: https://drive.google.com/uc?id=FILE_ID
-    
-    // Improved regex to handle various potential endings or suffixes
-    const dMatch = trimmedUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    const idParamMatch = trimmedUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    
-    if (dMatch && dMatch[1]) {
-      fileId = dMatch[1];
-    } else if (idParamMatch && idParamMatch[1]) {
-      fileId = idParamMatch[1];
-    }
+  if (trimmedUrl.includes("drive.google.com") || trimmedUrl.includes("docs.google.com")) {
+    // Robust regex to extract ID from various GDrive URL formats:
+    // /file/d/ID/..., ?id=ID, /open?id=ID, /folders/ID (rare but possible)
+    const idMatch = trimmedUrl.match(/(?:id=|\/d\/|\/folders\/)([a-zA-Z0-9_-]+)/);
+    const fileId = idMatch ? idMatch[1] : null;
 
     if (fileId) {
-      // The lh3.googleusercontent.com/d/ format is often more reliable for 
-      // direct image loading in web apps than the thumbnail or uc endpoints.
-      return `https://lh3.googleusercontent.com/d/${fileId}`;
+      // The 'thumbnail' endpoint is much more reliable for hotlinking public GDrive files.
+      // it avoids the security-scan redirects that often break uc?id= links.
+      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`;
     }
   }
 
   // Handle other potential hosting links if needed
   
   return trimmedUrl;
+}
+
+/**
+ * Returns a best-effort direct cover image URL for public Instagram links.
+ */
+export function getInstagramCoverUrl(url: string | undefined): string {
+  if (!url || typeof url !== 'string') return '';
+
+  const trimmedUrl = url.trim();
+  const match = trimmedUrl.match(/instagram\.com\/(reel|p|tv)\/([a-zA-Z0-9_-]+)/i);
+  if (!match) return '';
+
+  const type = match[1].toLowerCase();
+  const shortcode = match[2];
+  return `https://www.instagram.com/${type}/${shortcode}/media/?size=l`;
 }

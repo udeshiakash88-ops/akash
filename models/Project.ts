@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, models, model } from 'mongoose';
 export interface IProject extends Document {
   title: string;
   category: string;
-  image: string;
+  image?: string;
   link: string;
   stats: { likes: string; views: string };
   featured: boolean;
@@ -14,7 +14,7 @@ export interface IProject extends Document {
 const ProjectSchema = new Schema<IProject>({
   title: { type: String, required: true },
   category: { type: String, required: true },
-  image: { type: String, required: true },
+  image: { type: String, default: '' },
   link: { type: String, required: true },
   stats: {
     likes: { type: String, default: '0' },

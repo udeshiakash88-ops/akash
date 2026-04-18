@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { getDirectImageUrl } from '@/lib/imageUtils';
+import { getDirectImageUrl, getInstagramCoverUrl } from '@/lib/imageUtils';
 import styles from './PortfolioSection.module.css';
 
 interface Project {
@@ -9,16 +9,13 @@ interface Project {
   id?: number;
   title: string;
   category: string;
-  image: string;
+  image?: string;
   link: string;
   stats: { likes: string; views: string };
 }
 
 const PortfolioSection = () => {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [isPaused, setIsPaused] = useState(false);
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
-  const requestRef = React.useRef<number>(null);
 
   useEffect(() => {
     async function loadProjects() {
@@ -37,43 +34,12 @@ const PortfolioSection = () => {
     loadProjects();
   }, []);
 
-  // Smooth auto-scroll logic
-  const animate = useCallback(() => {
-    if (!scrollContainerRef.current || isPaused) {
-      requestRef.current = requestAnimationFrame(animate);
-      return;
+  const getProjectImageSrc = (project: Project): string => {
+    if (project.image?.trim()) {
+      return getDirectImageUrl(project.image);
     }
 
-    const container = scrollContainerRef.current;
-    
-    // Right to left scroll
-    container.scrollLeft += 0.8; // Speed
-
-    // Reset loop if halfway through (since we have 2 groups)
-    if (container.scrollLeft >= container.scrollWidth / 2) {
-      container.scrollLeft = 0;
-    }
-
-    requestRef.current = requestAnimationFrame(animate);
-  }, [isPaused]);
-
-  useEffect(() => {
-    requestRef.current = requestAnimationFrame(animate);
-    return () => {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
-    };
-  }, [animate]);
-
-  const handleScroll = (direction: 'left' | 'right') => {
-    if (!scrollContainerRef.current) return;
-    const container = scrollContainerRef.current;
-    const cardWidth = container.querySelector(`.${styles.card}`)?.clientWidth || 300;
-    const scrollAmount = cardWidth + 20; // card + gap
-    
-    container.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth'
-    });
+    return getInstagramCoverUrl(project.link) || '/assets/img3.jpeg';
   };
 
   if (projects.length === 0) return null;
@@ -92,14 +58,7 @@ const PortfolioSection = () => {
         <h2 className={styles.title}>Some of My Trending Reels</h2>
       </motion.div>
 
-      <div 
-        className={styles.marqueeShell}
-        ref={scrollContainerRef}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onTouchStart={() => setIsPaused(true)}
-        onTouchEnd={() => setIsPaused(false)}
-      >
+      <div className={styles.marqueeShell}>
         <div className={styles.edgeFadeLeft} aria-hidden="true" />
         <div className={styles.edgeFadeRight} aria-hidden="true" />
 
@@ -107,14 +66,12 @@ const PortfolioSection = () => {
         <div className={styles.controls}>
           <button 
             className={`${styles.navBtn} ${styles.prev}`} 
-            onClick={() => handleScroll('left')}
             aria-label="Previous reel"
           >
             ←
           </button>
           <button 
             className={`${styles.navBtn} ${styles.next}`} 
-            onClick={() => handleScroll('right')}
             aria-label="Next reel"
           >
             →
@@ -135,7 +92,7 @@ const PortfolioSection = () => {
                   <span className={styles.playBadge} aria-hidden="true">▶</span>
                   <div className={styles.imageWrapper}>
                     <Image 
-                      src={getDirectImageUrl(project.image)} 
+                      src={getProjectImageSrc(project)}
                       alt={project.title} 
                       fill 
                       className={styles.image}

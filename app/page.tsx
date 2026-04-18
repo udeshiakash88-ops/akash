@@ -281,15 +281,15 @@ export default function Home() {
             )}
           </section>
 
-          <AboutMe />
           <Services />
-          <Education />
-          <Gear />
           <PortfolioSection />
+          <Gear />
+          <Contact />
+          <Education />
           <section id="feedback">
             <Feedback />
           </section>
-          <Contact />
+          <AboutMe />
         </motion.main>
       ) : null}
 

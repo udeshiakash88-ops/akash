@@ -51,7 +51,7 @@
 
 .marqueeShell {
   position: relative;
-  overflow-x: auto;
+  overflow: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
   width: 100%;
@@ -67,6 +67,7 @@
   width: max-content;
   padding: 1.5rem 0;
   will-change: transform;
+  animation: workScrollLeft 28s linear infinite;
 }
 
 .marqueeGroup {
@@ -75,28 +76,25 @@
   padding-right: 1.25rem;
 }
 
-.marqueeShell:hover .marqueeTrack {
-  animation-play-state: paused;
-}
-
 .edgeFadeLeft,
 .edgeFadeRight {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 7rem;
+  width: 0;
   z-index: 2;
   pointer-events: none;
+  display: none;
 }
 
 .edgeFadeLeft {
   left: 0;
-  background: linear-gradient(90deg, var(--bg-color), rgba(245, 239, 230, 0));
+  background: transparent;
 }
 
 .edgeFadeRight {
   right: 0;
-  background: linear-gradient(270deg, var(--bg-color), rgba(245, 239, 230, 0));
+  background: transparent;
 }
 
 .card {
@@ -175,10 +173,10 @@
   justify-content: center;
   border-radius: 999px;
   background: rgba(20, 18, 16, 0.42);
-  backdrop-filter: blur(10px);
   color: white;
   font-size: 0.9rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  display: none;
 }
 
 .projectCategory {
@@ -244,6 +242,7 @@
   padding: 0 2rem;
   pointer-events: none;
   z-index: 10;
+  display: none;
 }
 
 .navBtn {
@@ -251,7 +250,6 @@
   height: 3.5rem;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
   display: flex;
@@ -306,7 +304,7 @@
 
   .edgeFadeLeft,
   .edgeFadeRight {
-    width: 2rem;
+    width: 0;
   }
 
   .marqueeTrack {

@@ -13,7 +13,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
     await dbConnect();
     const { id } = await params;
     const body = await request.json();
-    const item = await Education.findByIdAndUpdate(id, body, { new: true });
+    const { _id, __v, ...updateData } = body;
+    const item = await Education.findByIdAndUpdate(id, updateData, { new: true });
     if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(item);
   } catch (err: any) {

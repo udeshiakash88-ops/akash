@@ -1,21 +1,21 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getDirectImageUrl } from "@/lib/imageUtils";
+import { getDirectImageUrl, getInstagramCoverUrl } from "@/lib/imageUtils";
 
 interface Project { _id?: string; title: string; category: string; image: string; link: string; stats: { likes: string; views: string }; order: number; }
 interface Education { _id?: string; degree: string; short: string; year: string; status?: string; statusType: 'done' | 'current' | 'future'; icon: string; schoolName: string; schoolShort: string; location: string; order: number; }
 interface Gear { _id?: string; name: string; subtitle: string; description: string; icon: string; tags: string[]; order: number; }
 interface Feedback { _id?: string; name: string; role: string; brand: string; text: string; avatar: string; metric: string; order: number; }
 interface Skill { _id?: string; categoryTitle: string; icon: string; skills: string[]; order: number; }
-interface Settings { _id?: string; heroTitle: string; heroSubTitle: string; heroDescription: string; heroImage: string; stats: { label: string; value: string }[]; socials: { platform: string; url: string }[]; contactEmail: string; contactPhone: string; contactAddress: string; aboutImage: string; languages: string; heroBadgeText: string; heroBadgeShow: boolean; }
+interface Settings { _id?: string; heroTitle: string; heroSubTitle: string; heroDescription: string; heroImage: string; stats: { label: string; value: string }[]; socials: { platform: string; url: string }[]; contactEmail: string; contactPhone: string; contactAddress: string; aboutImage: string; languages: string; heroBadgeText: string; heroBadgeShow: boolean; logoImage: string; cloudinaryCloudName: string; }
 
 const emptyProject: Project = { title: "", category: "", image: "", link: "", stats: { likes: "", views: "" }, order: 0 };
 const emptyEducation: Education = { degree: "", short: "", year: "", status: "", statusType: "done", icon: "graduation", schoolName: "", schoolShort: "", location: "", order: 0 };
 const emptyGear: Gear = { name: "", subtitle: "", description: "", icon: "iphone", tags: [], order: 0 };
 const emptyFeedback: Feedback = { name: "", role: "", brand: "", text: "", avatar: "", metric: "", order: 0 };
 const emptySkill: Skill = { categoryTitle: "", icon: "strategy", skills: [], order: 0 };
-const emptySettings: Settings = { heroTitle: "", heroSubTitle: "", heroDescription: "", heroImage: "", stats: [], socials: [], contactEmail: "", contactPhone: "", contactAddress: "", aboutImage: "", languages: "", heroBadgeText: "", heroBadgeShow: false };
+const emptySettings: Settings = { heroTitle: "", heroSubTitle: "", heroDescription: "", heroImage: "", stats: [], socials: [], contactEmail: "", contactPhone: "", contactAddress: "", aboutImage: "", languages: "", heroBadgeText: "", heroBadgeShow: false, logoImage: "", cloudinaryCloudName: "" };
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -35,6 +35,7 @@ export default function AdminDashboard() {
   const [securityData, setSecurityData] = useState({ currentUsername: "", currentPassword: "", newUsername: "", newPassword: "" });
   const [securityMsg, setSecurityMsg] = useState("");
   const [securityLoading, setSecurityLoading] = useState(false);
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
 
   function getToken() {
     return typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
@@ -72,10 +73,16 @@ export default function AdminDashboard() {
     fetchData();
   }, [fetchData, router]);
 
-  // Sync settings into formData whenever settings tab is active and settings are loaded
+  // Sync settings into formData only when tab changes or when settings are first loaded
+  // Prevents overwriting current user typing in the fields
   useEffect(() => {
     if (tab === "settings") {
-      setFormData({ ...emptySettings, ...settings });
+      setFormData((prev: any) => {
+        // If prev is empty or we just switched to settings, use server settings
+        const isPrevEmpty = !prev.heroTitle && !prev.heroImage && !prev.contactEmail;
+        if (isPrevEmpty) return { ...emptySettings, ...settings };
+        return prev;
+      });
     }
   }, [tab, settings]);
 
@@ -115,16 +122,28 @@ export default function AdminDashboard() {
         body: JSON.stringify(formData),
       });
 
+      const d = await res.json();
       if (res.ok) {
-        setMsg("Saved successfully!");
-        setShowForm(false);
-        fetchData();
+        setMsg("✅ Saved successfully!");
+        
+        if (tab === 'settings' && d.settings) {
+          setSettings(d.settings);
+          setFormData({ ...emptySettings, ...d.settings });
+        }
+        
+        // Don't close form for settings, just show success
+        if (tab !== 'settings') {
+          setShowForm(false);
+          fetchData();
+        } else {
+          // For settings, it's nice to clear the msg after a bit
+          setTimeout(() => setMsg(""), 3000);
+        }
       } else {
-        const d = await res.json();
-        setMsg(d.error || "Error saving");
+        setMsg(`❌ ${d.error || "Error saving"}`);
       }
     } catch {
-      setMsg("Error: Could not connect to the server.");
+      setMsg("❌ Error: Could not connect to the server.");
     } finally {
       setSaving(false);
     }
@@ -175,6 +194,29 @@ export default function AdminDashboard() {
       setSecurityMsg("❌ Error: Could not connect to the server.");
     } finally {
       setSecurityLoading(false);
+    }
+  }
+
+  async function uploadImage(fieldName: string, file: File, onSuccess: (url: string) => void) {
+    setUploadingField(fieldName);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${getToken()}` },
+        body: fd,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        onSuccess(data.url);
+      } else {
+        setMsg(`❌ Upload failed: ${data.error}`);
+      }
+    } catch {
+      setMsg('❌ Upload error: Could not connect to server.');
+    } finally {
+      setUploadingField(null);
     }
   }
 
@@ -293,7 +335,14 @@ export default function AdminDashboard() {
                   <input style={inputStyle} placeholder="https://..." value={formData.link} onChange={e => setFormData({ ...formData, link: e.target.value })} />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column" }}>
-                  <input style={inputStyle} placeholder="Thumbnail Image URL" value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} />
+                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#b07d62', marginBottom: '0.4rem' }}>Thumbnail Image (Optional)</label>
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                    <input style={inputStyle} placeholder="Thumbnail Image URL (empty rakhso to reel cover auto aavse)" value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} />
+                    <label style={{ flexShrink: 0, padding: "0.6rem 1rem", background: uploadingField === 'image' ? "#d1c1b1" : "#b07d62", color: "white", borderRadius: 8, cursor: uploadingField === 'image' ? "not-allowed" : "pointer", fontSize: "0.8rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+                      {uploadingField === 'image' ? '⏳...' : '📁 Upload'}
+                      <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage('image', f, url => setFormData((p: any) => ({ ...p, image: url }))); e.target.value = ''; }} />
+                    </label>
+                  </div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column" }}>
                   <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#b07d62', marginBottom: '0.4rem' }}>No. of Likes</label>
@@ -358,6 +407,13 @@ export default function AdminDashboard() {
                 <input style={inputStyle} placeholder="Role" value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })} />
                 <input style={inputStyle} placeholder="Brand Name" value={formData.brand} onChange={e => setFormData({ ...formData, brand: e.target.value })} />
                 <input style={inputStyle} placeholder="Metric (e.g. +40% growth)" value={formData.metric} onChange={e => setFormData({ ...formData, metric: e.target.value })} />
+                <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                  <input style={inputStyle} placeholder="Avatar Image URL" value={formData.avatar || ''} onChange={e => setFormData({ ...formData, avatar: e.target.value })} />
+                  <label style={{ flexShrink: 0, padding: "0.6rem 1rem", background: uploadingField === 'avatar' ? "#d1c1b1" : "#b07d62", color: "white", borderRadius: 8, cursor: uploadingField === 'avatar' ? "not-allowed" : "pointer", fontSize: "0.8rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+                    {uploadingField === 'avatar' ? '⏳...' : '📁 Upload'}
+                    <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage('avatar', f, url => setFormData((p: any) => ({ ...p, avatar: url }))); e.target.value = ''; }} />
+                  </label>
+                </div>
                 <textarea style={{ ...inputStyle, gridColumn: "1 / -1" }} placeholder="Feedback Text" value={formData.text} onChange={e => setFormData({ ...formData, text: e.target.value })} />
               </>}
               {tab === "skills" && <>
@@ -391,14 +447,45 @@ export default function AdminDashboard() {
           <div style={{ background: "white", borderRadius: 16, padding: "1.8rem", marginBottom: "1.5rem", boxShadow: "0 8px 30px rgba(45,35,29,0.08)" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "1.8rem" }}>
 
+              <div>
+                <h4 style={{ margin: "0 0 1rem", color: "#b07d62", fontFamily: "var(--font-serif, serif)", fontSize: "1rem", borderBottom: "1px solid #ede0d4", paddingBottom: "0.5rem" }}>🖼️ Logo & Branding</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                    <input style={inputStyle} placeholder="Logo Image URL" value={formData.logoImage || ''} onChange={e => setFormData({ ...formData, logoImage: e.target.value })} />
+                    <label style={{ flexShrink: 0, padding: "0.6rem 1rem", background: uploadingField === 'logoImage' ? "#d1c1b1" : "#b07d62", color: "white", borderRadius: 8, cursor: uploadingField === 'logoImage' ? "not-allowed" : "pointer", fontSize: "0.8rem", fontWeight: 700, whiteSpace: "nowrap", userSelect: "none" }}>
+                      {uploadingField === 'logoImage' ? '⏳...' : '📁 Upload'}
+                      <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage('logoImage', f, url => setFormData((p: any) => ({ ...p, logoImage: url }))); e.target.value = ''; }} />
+                    </label>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#6d5a4d', display: 'block', marginBottom: '0.3rem' }}>☁️ Cloudinary Cloud Name <span style={{ color: '#c53030' }}>*</span></label>
+                    <input style={inputStyle} placeholder="e.g. dv3abc123 (Cloudinary Dashboard top-left)" value={formData.cloudinaryCloudName || ''} onChange={e => setFormData({ ...formData, cloudinaryCloudName: e.target.value })} />
+                    <p style={{ margin: '0.3rem 0 0', fontSize: '0.72rem', color: '#9c8c7d' }}>Cloudinary Dashboard → top-left corner ma tame cloud name jue sakasho.</p>
+                  </div>
+                  {formData.logoImage && (
+                    <img
+                      src={getDirectImageUrl(formData.logoImage)}
+                      alt="Logo preview"
+                      style={{ width: 60, height: 60, objectFit: "cover", borderRadius: "50%", border: "1.5px solid #d1c1b1", background: "#faf7f3" }}
+                    />
+                  )}
+                </div>
+              </div>
+
               {/* Hero Section */}
               <div>
                 <h4 style={{ margin: "0 0 1rem", color: "#b07d62", fontFamily: "var(--font-serif, serif)", fontSize: "1rem", borderBottom: "1px solid #ede0d4", paddingBottom: "0.5rem" }}>🎯 Hero Section</h4>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "0.8rem" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "0.8rem" }}>
                   <input style={inputStyle} placeholder="Hero Title (e.g. Vision of Akash)" value={formData.heroTitle || ''} onChange={e => setFormData({ ...formData, heroTitle: e.target.value })} />
                   <input style={inputStyle} placeholder="Hero Subtitle (e.g. Creative Director)" value={formData.heroSubTitle || ''} onChange={e => setFormData({ ...formData, heroSubTitle: e.target.value })} />
                   <textarea style={{ ...inputStyle, gridColumn: "1 / -1" }} rows={2} placeholder="Hero Description" value={formData.heroDescription || ''} onChange={e => setFormData({ ...formData, heroDescription: e.target.value })} />
-                  <input style={{ ...inputStyle, gridColumn: "1 / -1" }} placeholder="Hero Image URL" value={formData.heroImage || ''} onChange={e => setFormData({ ...formData, heroImage: e.target.value })} />
+                  <div style={{ gridColumn: "1 / -1", display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                    <input style={inputStyle} placeholder="Hero Image URL" value={formData.heroImage || ''} onChange={e => setFormData({ ...formData, heroImage: e.target.value })} />
+                    <label style={{ flexShrink: 0, padding: "0.6rem 1rem", background: uploadingField === 'heroImage' ? "#d1c1b1" : "#b07d62", color: "white", borderRadius: 8, cursor: uploadingField === 'heroImage' ? "not-allowed" : "pointer", fontSize: "0.8rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+                      {uploadingField === 'heroImage' ? '⏳...' : '📁 Upload'}
+                      <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage('heroImage', f, url => setFormData((p: any) => ({ ...p, heroImage: url }))); e.target.value = ''; }} />
+                    </label>
+                  </div>
 
 
                   {formData.heroImage && (
@@ -457,7 +544,13 @@ export default function AdminDashboard() {
               <div>
                 <h4 style={{ margin: "0 0 1rem", color: "#b07d62", fontFamily: "var(--font-serif, serif)", fontSize: "1rem", borderBottom: "1px solid #ede0d4", paddingBottom: "0.5rem" }}>🖼️ About Section</h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
-                  <input style={inputStyle} placeholder="Profile Image URL (About section)" value={formData.aboutImage || ''} onChange={e => setFormData({ ...formData, aboutImage: e.target.value })} />
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                    <input style={inputStyle} placeholder="Profile Image URL (About section)" value={formData.aboutImage || ''} onChange={e => setFormData({ ...formData, aboutImage: e.target.value })} />
+                    <label style={{ flexShrink: 0, padding: "0.6rem 1rem", background: uploadingField === 'aboutImage' ? "#d1c1b1" : "#b07d62", color: "white", borderRadius: 8, cursor: uploadingField === 'aboutImage' ? "not-allowed" : "pointer", fontSize: "0.8rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+                      {uploadingField === 'aboutImage' ? '⏳...' : '📁 Upload'}
+                      <input type="file" accept="image/*" style={{ display: "none" }} disabled={!!uploadingField} onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage('aboutImage', f, url => setFormData((p: any) => ({ ...p, aboutImage: url }))); e.target.value = ''; }} />
+                    </label>
+                  </div>
 
 
                   {formData.aboutImage && (
@@ -512,7 +605,21 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              <button onClick={handleSave} disabled={saving} style={{ padding: "0.9rem 2.5rem", background: "#2d231d", color: "white", border: "none", borderRadius: 10, fontWeight: 700, cursor: "pointer", fontSize: "0.95rem", alignSelf: "flex-start" }}>{saving ? "Saving..." : "💾 Save All Settings"}</button>
+              <button 
+                onClick={handleSave} 
+                disabled={saving} 
+                style={{ 
+                  padding: "0.9rem 2.5rem", 
+                  background: msg.includes("✅") ? "#2f855a" : "#2d231d", 
+                  color: "white", border: "none", borderRadius: 10, 
+                  fontWeight: 700, cursor: "pointer", fontSize: "0.95rem", 
+                  alignSelf: "flex-start",
+                  transition: "all 0.3s ease",
+                  boxShadow: msg.includes("✅") ? "0 4px 15px rgba(47,133,90,0.3)" : "none"
+                }}
+              >
+                {saving ? "⏳ Saving..." : msg.includes("✅") ? "✅ Settings Saved!" : "💾 Save All Settings"}
+              </button>
             </div>
           </div>
         )}
@@ -528,7 +635,7 @@ export default function AdminDashboard() {
             {items.map((item: any) => {
               const displayTitle = item.title || item.name || item.degree || item.categoryTitle || "Untitled";
               const displaySub = item.category || item.schoolName || item.subtitle || item.role || (item.skills ? item.skills.join(', ') : "");
-              const displayImg = item.image || item.thumbnail || item.avatar;
+              const displayImg = item.image || item.thumbnail || item.avatar || (tab === "projects" ? getInstagramCoverUrl(item.link) : "");
 
               return (
                 <div key={item._id} style={{

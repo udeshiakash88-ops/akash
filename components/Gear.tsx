@@ -104,7 +104,7 @@ export default function Gear() {
       >
         {gearList.map((item, i) => (
           <motion.div
-            key={item.id}
+            key={item._id || i}
             className={styles.card}
             variants={cardVariants}
             custom={i}

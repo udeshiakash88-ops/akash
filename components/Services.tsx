@@ -129,7 +129,7 @@ export default function Services() {
       <div className={styles.grid}>
         {serviceList.map((svc, i) => (
           <motion.div
-            key={svc.id}
+            key={svc._id || i}
             className={styles.card}
             custom={i}
             variants={cardVariants}

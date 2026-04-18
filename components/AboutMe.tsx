@@ -27,12 +27,14 @@ const icons = {
 type IconKey = keyof typeof icons;
 
 interface SkillCategory {
+  _id?: string;
   title: string;
   icon: React.ReactNode;
   skills: string[];
 }
 
 interface ApiSkillCategory {
+  _id?: string;
   title: string;
   categoryTitle?: string;
   icon?: IconKey | string;
@@ -48,7 +50,8 @@ const AboutMe = () => {
       .then((response) => response.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
-          const mapped = (data as ApiSkillCategory[]).map((category) => ({
+          const mapped: SkillCategory[] = (data as ApiSkillCategory[]).map((category) => ({
+            _id: category._id,
             title: category.title || category.categoryTitle || 'Skill Category',
             skills: category.skills,
             icon: icons[category.icon as IconKey] || icons.creative
@@ -104,7 +107,7 @@ const AboutMe = () => {
               <div className={styles.cardStage}>
                 {skillCategories.map((category, i) => (
                   <motion.div
-                    key={`${category.title}-${i}`}
+                    key={category._id || i}
                     className={styles.skillCardSingle}
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -117,7 +120,7 @@ const AboutMe = () => {
                     </div>
 
                     <ul className={styles.skillItemList}>
-                      {category.skills.map((skill, si) => (
+                      {category.skills.map((skill: string, si) => (
                         <li key={si} className={styles.skillItem}>
                           <span className={styles.skillDot} />
                           {skill}

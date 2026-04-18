@@ -14,6 +14,8 @@ export interface IGlobalSettings extends Document {
   languages: string;
   heroBadgeText: string;
   heroBadgeShow: boolean;
+  logoImage: string;
+  cloudinaryCloudName: string;
 }
 
 const GlobalSettingsSchema = new Schema<IGlobalSettings>({
@@ -34,6 +36,8 @@ const GlobalSettingsSchema = new Schema<IGlobalSettings>({
   languages: { type: String, default: '' },
   heroBadgeText: { type: String, default: '' },
   heroBadgeShow: { type: Boolean, default: false },
+  logoImage: { type: String, default: '' },
+  cloudinaryCloudName: { type: String, default: '' },
 });
 
 export default models.GlobalSettings || model<IGlobalSettings>('GlobalSettings', GlobalSettingsSchema);
