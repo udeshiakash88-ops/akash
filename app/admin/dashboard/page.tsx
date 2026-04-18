@@ -31,17 +31,9 @@ export default function AdminDashboard() {
   const [formData, setFormData] = useState<any>(emptyProject);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [aboutUploadLoading, setAboutUploadLoading] = useState(false);
-  const [aboutUploadError, setAboutUploadError] = useState("");
-  const [aboutUploadSuccess, setAboutUploadSuccess] = useState("");
-  
   const [securityData, setSecurityData] = useState({ currentUsername: "", currentPassword: "", newUsername: "", newPassword: "" });
   const [securityMsg, setSecurityMsg] = useState("");
   const [securityLoading, setSecurityLoading] = useState(false);
-  const [heroUploadLoading, setHeroUploadLoading] = useState(false);
-  const [heroUploadError, setHeroUploadError] = useState("");
-  const [heroUploadSuccess, setHeroUploadSuccess] = useState("");
 
   function getToken() {
     return typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
@@ -108,71 +100,6 @@ export default function AdminDashboard() {
     setShowForm(true);
   }
 
-  async function handleAboutImageUpload(file: File | null) {
-    if (!file) return;
-
-    setAboutUploadError("");
-    setAboutUploadSuccess("");
-    setAboutUploadLoading(true);
-
-    try {
-      const token = getToken();
-      const uploadData = new FormData();
-      uploadData.append("file", file);
-
-      const res = await fetch("/api/admin/upload-image", {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        body: uploadData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setAboutUploadError(data.error || "Failed to upload image");
-        return;
-      }
-
-      setFormData((prev: Settings) => ({ ...prev, aboutImage: data.url }));
-      setAboutUploadSuccess("Image uploaded successfully. Save settings to apply.");
-    } catch {
-      setAboutUploadError("Upload failed. Please try again.");
-    } finally {
-      setAboutUploadLoading(false);
-    }
-  }
-
-  async function handleHeroImageUpload(file: File | null) {
-    if (!file) return;
-
-    setHeroUploadError("");
-    setHeroUploadSuccess("");
-    setHeroUploadLoading(true);
-
-    try {
-      const token = getToken();
-      const uploadData = new FormData();
-      uploadData.append("file", file);
-
-      const res = await fetch("/api/admin/upload-image", {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        body: uploadData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setHeroUploadError(data.error || "Failed to upload image");
-        return;
-      }
-
-      setFormData((prev: Settings) => ({ ...prev, heroImage: data.url }));
-      setHeroUploadSuccess("Hero image uploaded. Save settings to apply.");
-    } catch {
-      setHeroUploadError("Upload failed. Please try again.");
-    } finally {
-      setHeroUploadLoading(false);
-    }
-  }
 
   async function handleSave() {
     setSaving(true);
@@ -218,36 +145,6 @@ export default function AdminDashboard() {
     return [];
   };
 
-  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, fieldName: string) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    setMsg("Uploading file...");
-
-    const uploadData = new FormData();
-    uploadData.append("file", file);
-
-    try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${getToken()}` },
-        body: uploadData
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setFormData((prev: any) => ({ ...prev, [fieldName]: data.url }));
-        setMsg("File uploaded successfully!");
-      } else {
-        setMsg(data.error || "Upload failed");
-      }
-    } catch (err) {
-      setMsg("Upload error: Connection failed");
-    } finally {
-      setUploading(false);
-    }
-  }
 
   async function handleChangeCredentials() {
     const { currentUsername, currentPassword, newUsername, newPassword } = securityData;
@@ -395,18 +292,7 @@ export default function AdminDashboard() {
                   <input style={inputStyle} placeholder="https://..." value={formData.link} onChange={e => setFormData({ ...formData, link: e.target.value })} />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column" }}>
-                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#b07d62', marginBottom: '0.4rem' }}>Thumbnail Image</label>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <input style={inputStyle} placeholder="URL or upload →" value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} />
-                    <label style={{ 
-                      padding: "0 1rem", background: "#f5efe6", border: "1.5px solid #d1c1b1", 
-                      borderRadius: 8, display: "flex", alignItems: "center", cursor: "pointer",
-                      fontSize: "0.8rem", fontWeight: 700, color: "#b07d62", whiteSpace: "nowrap"
-                    }}>
-                      {uploading ? "..." : "Upload"}
-                      <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => handleFileUpload(e, "image")} />
-                    </label>
-                  </div>
+                  <input style={inputStyle} placeholder="Thumbnail Image URL" value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column" }}>
                   <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#b07d62', marginBottom: '0.4rem' }}>No. of Likes</label>
@@ -513,18 +399,6 @@ export default function AdminDashboard() {
                   <textarea style={{ ...inputStyle, gridColumn: "1 / -1" }} rows={2} placeholder="Hero Description" value={formData.heroDescription || ''} onChange={e => setFormData({ ...formData, heroDescription: e.target.value })} />
                   <input style={{ ...inputStyle, gridColumn: "1 / -1" }} placeholder="Hero Image URL" value={formData.heroImage || ''} onChange={e => setFormData({ ...formData, heroImage: e.target.value })} />
 
-                  <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: "0.8rem", flexWrap: "wrap" }}>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={e => handleHeroImageUpload(e.target.files?.[0] || null)}
-                      style={{ fontSize: "0.82rem", color: "#6d5a4d" }}
-                    />
-                    {heroUploadLoading && <span style={{ fontSize: "0.82rem", color: "#b07d62", fontWeight: 600 }}>Uploading...</span>}
-                  </div>
-
-                  {heroUploadError && <p style={{ gridColumn: "1 / -1", margin: 0, color: "#c53030", fontSize: "0.8rem", fontWeight: 600 }}>{heroUploadError}</p>}
-                  {heroUploadSuccess && <p style={{ gridColumn: "1 / -1", margin: 0, color: "#2f855a", fontSize: "0.8rem", fontWeight: 600 }}>{heroUploadSuccess}</p>}
 
                   {formData.heroImage && (
                     <img
@@ -584,18 +458,6 @@ export default function AdminDashboard() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
                   <input style={inputStyle} placeholder="Profile Image URL (About section)" value={formData.aboutImage || ''} onChange={e => setFormData({ ...formData, aboutImage: e.target.value })} />
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", flexWrap: "wrap" }}>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={e => handleAboutImageUpload(e.target.files?.[0] || null)}
-                      style={{ fontSize: "0.82rem", color: "#6d5a4d" }}
-                    />
-                    {aboutUploadLoading && <span style={{ fontSize: "0.82rem", color: "#b07d62", fontWeight: 600 }}>Uploading...</span>}
-                  </div>
-
-                  {aboutUploadError && <p style={{ margin: 0, color: "#c53030", fontSize: "0.8rem", fontWeight: 600 }}>{aboutUploadError}</p>}
-                  {aboutUploadSuccess && <p style={{ margin: 0, color: "#2f855a", fontSize: "0.8rem", fontWeight: 600 }}>{aboutUploadSuccess}</p>}
 
                   {formData.aboutImage && (
                     <img
