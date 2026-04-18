@@ -15,8 +15,9 @@ export function getDirectImageUrl(url: string | undefined): string {
     // Pattern 2: https://drive.google.com/open?id=FILE_ID
     // Pattern 3: https://drive.google.com/uc?id=FILE_ID
     
-    const dMatch = trimmedUrl.match(/\/d\/([^\/?#]+)/);
-    const idParamMatch = trimmedUrl.match(/[?&]id=([^\/?#&]+)/);
+    // Improved regex to handle various potential endings or suffixes
+    const dMatch = trimmedUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    const idParamMatch = trimmedUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
     
     if (dMatch && dMatch[1]) {
       fileId = dMatch[1];
@@ -25,9 +26,9 @@ export function getDirectImageUrl(url: string | undefined): string {
     }
 
     if (fileId) {
-      // thumbnail?id= format is more resilient for high-resolution images 
-      // and often bypasses the "virus scan" warning screen which blocks regular 'uc' links.
-      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`;
+      // The lh3.googleusercontent.com/d/ format is often more reliable for 
+      // direct image loading in web apps than the thumbnail or uc endpoints.
+      return `https://lh3.googleusercontent.com/d/${fileId}`;
     }
   }
 

@@ -53,7 +53,14 @@
 
 .marqueeShell {
   position: relative;
-  overflow: hidden;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  width: 100%;
+}
+
+.marqueeShell::-webkit-scrollbar {
+  display: none;
 }
 
 .marqueeTrack {
@@ -61,12 +68,49 @@
   gap: 1.5rem;
   width: max-content;
   padding: 1.5rem 6%;
-  animation: scrollLeft 42s linear infinite;
   will-change: transform;
 }
 
-.marqueeShell:hover .marqueeTrack {
-  animation-play-state: paused;
+.controls {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2rem;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.navBtn {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(176, 125, 98, 0.2);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+  box-shadow: 0 8px 32px rgba(45, 35, 29, 0.12);
+}
+
+.navBtn:hover {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+  transform: scale(1.1);
+}
+
+.navBtn:active {
+  transform: scale(0.95);
 }
 
 .edgeFadeLeft,
@@ -251,8 +295,8 @@
 
   .marqueeTrack {
     gap: 1rem;
-    padding: 1rem 5%;
-    animation-duration: 28s;
+    padding: 1rem 6%;
+    width: max-content;
   }
 
   .edgeFadeLeft,
@@ -276,8 +320,8 @@
     align-items: flex-start;
   }
 
-  .metric {
-    text-align: left;
+  .controls {
+    display: none;
   }
 }
 

@@ -92,19 +92,12 @@ const cardVariants = {
 
 export default function Services() {
   const [serviceList, setServiceList] = useState<any[]>([]);
-  const [activeFeatured, setActiveFeatured] = useState<any>(null);
 
   useEffect(() => {
     fetch("/api/services")
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          const mainFeatured = data.find((s: any) => s.isFeatured) || data[0];
-          setActiveFeatured({
-            ...mainFeatured,
-            icon: (icons as any)[mainFeatured.icon] || icons.car,
-            tag: mainFeatured.tag || "★ Featured"
-          });
           const mapped = data.map((s: any) => ({
             ...s,
             icon: (icons as any)[s.icon] || icons.film
@@ -112,10 +105,9 @@ export default function Services() {
           setServiceList(mapped);
         } else {
           setServiceList([]);
-          setActiveFeatured(null);
         }
       })
-      .catch(() => { setServiceList([]); setActiveFeatured(null); });
+      .catch(() => { setServiceList([]); });
   }, []);
 
   if (serviceList.length === 0) return null;
@@ -131,29 +123,7 @@ export default function Services() {
       </div>
       <h2 className={styles.heading}>Services</h2>
 
-      {/* ── FEATURED Hero Strip ── */}
-      {activeFeatured && (
-        <motion.div
-          className={styles.featuredCard}
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] as any }}
-        >
-          <div className={styles.featuredLeft}>
-            <span className={styles.featuredTag}>{activeFeatured.tag}</span>
-            <div className={styles.featuredIconRow}>
-              <span className={styles.featuredIcon}>{activeFeatured.icon}</span>
-              <h3 className={styles.featuredTitle}>{activeFeatured.title}</h3>
-            </div>
-            <p className={styles.featuredDesc}>{activeFeatured.desc || activeFeatured.description}</p>
-          </div>
-          <div className={styles.featuredRight}>
-            <span className={styles.featuredArrow}>→</span>
-          </div>
-          <span className={styles.featuredGhost}>{activeFeatured.num}</span>
-        </motion.div>
-      )}
+      {/* ── Card Grid ── */}
 
       {/* ── 2-Row Card Grid (5 × 2) ── */}
       <div className={styles.grid}>
@@ -168,7 +138,6 @@ export default function Services() {
             viewport={{ once: true, margin: "-40px" }}
             whileHover={{ y: -6 }}
           >
-            <span className={styles.ghostNum}>{svc.num}</span>
             <div className={styles.accentLine} />
             <span className={styles.cardIcon}>{svc.icon}</span>
             <p className={styles.cardTitle}>{svc.title}</p>

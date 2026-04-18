@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { getDirectImageUrl } from '@/lib/imageUtils'; // Assuming avatars might use this if they are URLs
 import styles from './Feedback.module.css';
 
 export default function Feedback() {
   const [feedbackList, setFeedbackList] = useState<any[]>([]);
+  const [isPaused, setIsPaused] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const requestRef = useRef<number>(null);
 
   useEffect(() => {
     fetch("/api/feedback")
@@ -18,8 +22,44 @@ export default function Feedback() {
       .catch(() => setFeedbackList([]));
   }, []);
 
+  const animate = useCallback(() => {
+    if (!scrollContainerRef.current || isPaused) {
+      requestRef.current = requestAnimationFrame(animate);
+      return;
+    }
+
+    const container = scrollContainerRef.current;
+    container.scrollLeft += 0.6; // Slightly slower speed for reading
+
+    if (container.scrollLeft >= container.scrollWidth / 2) {
+      container.scrollLeft = 0;
+    }
+
+    requestRef.current = requestAnimationFrame(animate);
+  }, [isPaused]);
+
+  useEffect(() => {
+    requestRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
+    };
+  }, [animate]);
+
+  const handleScroll = (direction: 'left' | 'right') => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const cardWidth = container.querySelector(`.${styles.card}`)?.clientWidth || 360;
+    const scrollAmount = cardWidth + 24; // card + gap
+    
+    container.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth'
+    });
+  };
+
   if (feedbackList.length === 0) return null;
 
+  // Duplicate for infinite scroll
   const marqueeTestimonials = [...feedbackList, ...feedbackList];
 
   return (
@@ -39,9 +79,33 @@ export default function Feedback() {
         </p>
       </motion.div>
 
-      <div className={styles.marqueeShell}>
+      <div 
+        className={styles.marqueeShell}
+        ref={scrollContainerRef}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
+      >
         <div className={styles.edgeFadeLeft} aria-hidden="true" />
         <div className={styles.edgeFadeRight} aria-hidden="true" />
+
+        <div className={styles.controls}>
+          <button 
+            className={`${styles.navBtn} ${styles.prev}`} 
+            onClick={() => handleScroll('left')}
+            aria-label="Previous testimonial"
+          >
+            ←
+          </button>
+          <button 
+            className={`${styles.navBtn} ${styles.next}`} 
+            onClick={() => handleScroll('right')}
+            aria-label="Next testimonial"
+          >
+            →
+          </button>
+        </div>
 
         <div className={styles.marqueeTrack}>
           {marqueeTestimonials.map((item, index) => (
