@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@vercel/blob": "^2.3.3",
     "animejs": "^4.3.6",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
