@@ -23,6 +23,18 @@ const PortfolioSection = () => {
   const resumeTimeoutRef = useRef<number | null>(null);
   const isPointerDownRef = useRef(false);
 
+  const wrapScrollPosition = (container: HTMLDivElement) => {
+    const loopWidth = container.scrollWidth / 2;
+
+    if (loopWidth <= 0) return;
+
+    if (container.scrollLeft >= loopWidth) {
+      container.scrollLeft -= loopWidth;
+    } else if (container.scrollLeft < 0) {
+      container.scrollLeft += loopWidth;
+    }
+  };
+
   useEffect(() => {
     async function loadProjects() {
       try {
@@ -51,11 +63,7 @@ const PortfolioSection = () => {
     const scroll = () => {
       if (!isPaused && !isPointerDownRef.current) {
         container.scrollLeft += speed;
-
-        // Infinite loop reset
-        if (container.scrollLeft >= container.scrollWidth / 2) {
-          container.scrollLeft = 0;
-        }
+        wrapScrollPosition(container);
       }
       animationFrameId = requestAnimationFrame(scroll);
     };
@@ -63,6 +71,14 @@ const PortfolioSection = () => {
     animationFrameId = requestAnimationFrame(scroll);
     return () => cancelAnimationFrame(animationFrameId);
   }, [isPaused, projects.length]);
+
+  useEffect(() => {
+    return () => {
+      if (resumeTimeoutRef.current) {
+        window.clearTimeout(resumeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const scheduleResume = () => {
     if (resumeTimeoutRef.current) window.clearTimeout(resumeTimeoutRef.current);
@@ -93,6 +109,14 @@ const PortfolioSection = () => {
     }
   };
 
+  const handleScroll = () => {
+    const container = scrollContainerRef.current;
+
+    if (!container) return;
+
+    wrapScrollPosition(container);
+  };
+
   const getProjectImageSrc = (project: Project): string => {
     if (project.image?.trim()) {
       return getDirectImageUrl(project.image);
@@ -117,56 +141,59 @@ const PortfolioSection = () => {
         <h2 className={styles.title}>Some of My Trending Reels</h2>
       </motion.div>
 
-      <div
-        className={styles.marqueeShell}
-        ref={scrollContainerRef}
-        onMouseEnter={handleHoverStart}
-        onMouseLeave={handleHoverEnd}
-        onPointerDown={handlePointerStart}
-        onPointerUp={handlePointerEnd}
-        onPointerCancel={handlePointerEnd}
-      >
+      <div className={styles.marqueeFrame}>
         <div className={styles.edgeFadeLeft} aria-hidden="true" />
         <div className={styles.edgeFadeRight} aria-hidden="true" />
 
-        <div className={styles.marqueeTrack}>
-          {projects.map((project, index) => (
-            <a 
-              key={`${project._id ?? project.id}-${index}`}
-              href={project.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.card}
-            >
-              <span className={styles.playBadge} aria-hidden="true">▶</span>
-              <div className={styles.imageWrapper}>
-                <Image 
-                  src={getProjectImageSrc(project)}
-                  alt={project.title} 
-                  fill 
-                  className={styles.image}
-                  unoptimized={true}
-                  sizes="(max-width: 768px) 80vw, 320px"
-                />
-                <div className={styles.overlay}>
-                  <div className={styles.projectInfo}>
-                    <p className={styles.projectCategory}>{project.category}</p>
-                    <h3 className={styles.projectTitle}>{project.title}</h3>
-                  </div>
-                  <div className={styles.cardStats}>
-                     <div className={styles.stat}>
-                       <span className={styles.statVal}>{project.stats.likes}</span>
-                        <span className={styles.statLabel}>LIKES</span>
-                     </div>
-                     <div className={styles.stat}>
-                       <span className={styles.statVal}>{project.stats.views}</span>
-                        <span className={styles.statLabel}>VIEWS</span>
-                     </div>
+        <div
+          className={styles.marqueeShell}
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          onMouseEnter={handleHoverStart}
+          onMouseLeave={handleHoverEnd}
+          onPointerDown={handlePointerStart}
+          onPointerUp={handlePointerEnd}
+          onPointerCancel={handlePointerEnd}
+        >
+          <div className={styles.marqueeTrack}>
+            {projects.map((project, index) => (
+              <a 
+                key={`${project._id ?? project.id}-${index}`}
+                href={project.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.card}
+              >
+                <span className={styles.playBadge} aria-hidden="true">▶</span>
+                <div className={styles.imageWrapper}>
+                  <Image 
+                    src={getProjectImageSrc(project)}
+                    alt={project.title} 
+                    fill 
+                    className={styles.image}
+                    unoptimized={true}
+                    sizes="(max-width: 768px) 80vw, 320px"
+                  />
+                  <div className={styles.overlay}>
+                    <div className={styles.projectInfo}>
+                      <p className={styles.projectCategory}>{project.category}</p>
+                      <h3 className={styles.projectTitle}>{project.title}</h3>
+                    </div>
+                    <div className={styles.cardStats}>
+                       <div className={styles.stat}>
+                         <span className={styles.statVal}>{project.stats.likes}</span>
+                          <span className={styles.statLabel}>LIKES</span>
+                       </div>
+                       <div className={styles.stat}>
+                         <span className={styles.statVal}>{project.stats.views}</span>
+                          <span className={styles.statLabel}>VIEWS</span>
+                       </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </a>
-          ))}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </section>

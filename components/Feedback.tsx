@@ -22,6 +22,18 @@ export default function Feedback() {
   const resumeTimeoutRef = useRef<number | null>(null);
   const isPointerDownRef = useRef(false);
 
+  const wrapScrollPosition = (container: HTMLDivElement) => {
+    const loopWidth = container.scrollWidth / 2;
+
+    if (loopWidth <= 0) return;
+
+    if (container.scrollLeft >= loopWidth) {
+      container.scrollLeft -= loopWidth;
+    } else if (container.scrollLeft < 0) {
+      container.scrollLeft += loopWidth;
+    }
+  };
+
   useEffect(() => {
     fetch("/api/feedback")
       .then(r => r.json())
@@ -46,13 +58,7 @@ export default function Feedback() {
     const scroll = () => {
       if (!isPaused && !isPointerDownRef.current) {
         container.scrollLeft += speed;
-
-        // Create the seamless loop effect
-        // When we reach the half-way point (the end of the first list),
-        // we snap back to the start. The second copy ensures no gap.
-        if (container.scrollLeft >= container.scrollWidth / 2) {
-          container.scrollLeft = 0;
-        }
+        wrapScrollPosition(container);
       }
       animationFrameId = requestAnimationFrame(scroll);
     };
@@ -60,6 +66,14 @@ export default function Feedback() {
     animationFrameId = requestAnimationFrame(scroll);
     return () => cancelAnimationFrame(animationFrameId);
   }, [isPaused, feedbackList.length]);
+
+  useEffect(() => {
+    return () => {
+      if (resumeTimeoutRef.current) {
+        window.clearTimeout(resumeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const scheduleResume = () => {
     if (resumeTimeoutRef.current) window.clearTimeout(resumeTimeoutRef.current);
@@ -90,6 +104,14 @@ export default function Feedback() {
     }
   };
 
+  const handleScroll = () => {
+    const container = scrollContainerRef.current;
+
+    if (!container) return;
+
+    wrapScrollPosition(container);
+  };
+
   if (feedbackList.length === 0) return null;
 
   return (
@@ -109,46 +131,49 @@ export default function Feedback() {
         </p>
       </motion.div>
 
-      <div 
-        className={styles.marqueeShell}
-        ref={scrollContainerRef}
-        onMouseEnter={handleHoverStart}
-        onMouseLeave={handleHoverEnd}
-        onPointerDown={handlePointerStart}
-        onPointerUp={handlePointerEnd}
-        onPointerCancel={handlePointerEnd}
-      >
+      <div className={styles.marqueeFrame}>
         <div className={styles.edgeFadeLeft} aria-hidden="true" />
         <div className={styles.edgeFadeRight} aria-hidden="true" />
 
-        <div className={styles.marqueeTrack}>
-          {feedbackList.map((item, index) => (
-            <article
-              key={`${item._id ?? item.id}-${index}`}
-              className={styles.card}
-            >
-              <div className={styles.cardTopLine} />
-              <div className={styles.cardHeader}>
-                <div className={styles.avatar}>{item.avatar}</div>
-                <div className={styles.identity}>
-                  <h4 className={styles.name}>{item.name}</h4>
-                  <p className={styles.role}>{item.role}</p>
+        <div 
+          className={styles.marqueeShell}
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          onMouseEnter={handleHoverStart}
+          onMouseLeave={handleHoverEnd}
+          onPointerDown={handlePointerStart}
+          onPointerUp={handlePointerEnd}
+          onPointerCancel={handlePointerEnd}
+        >
+          <div className={styles.marqueeTrack}>
+            {feedbackList.map((item, index) => (
+              <article
+                key={`${item._id ?? item.id}-${index}`}
+                className={styles.card}
+              >
+                <div className={styles.cardTopLine} />
+                <div className={styles.cardHeader}>
+                  <div className={styles.avatar}>{item.avatar}</div>
+                  <div className={styles.identity}>
+                    <h4 className={styles.name}>{item.name}</h4>
+                    <p className={styles.role}>{item.role}</p>
+                  </div>
                 </div>
-              </div>
 
-              <p className={styles.rating}>★★★★★</p>
-              <p className={styles.feedbackText}>
-                <span aria-hidden="true">&ldquo;</span>
-                {item.text}
-                <span aria-hidden="true">&rdquo;</span>
-              </p>
+                <p className={styles.rating}>★★★★★</p>
+                <p className={styles.feedbackText}>
+                  <span aria-hidden="true">&ldquo;</span>
+                  {item.text}
+                  <span aria-hidden="true">&rdquo;</span>
+                </p>
 
-              <div className={styles.cardFooter}>
-                <span className={styles.brand}>{item.brand}</span>
-                <span className={styles.metric}>{item.metric}</span>
-              </div>
-            </article>
-          ))}
+                <div className={styles.cardFooter}>
+                  <span className={styles.brand}>{item.brand}</span>
+                  <span className={styles.metric}>{item.metric}</span>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>

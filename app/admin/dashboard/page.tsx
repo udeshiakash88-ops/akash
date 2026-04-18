@@ -225,11 +225,11 @@ export default function AdminDashboard() {
   const inputStyle: React.CSSProperties = {
     padding: "0.75rem 0.9rem", border: "1.5px solid #d1c1b1", borderRadius: 8,
     fontSize: "0.9rem", fontFamily: "inherit", width: "100%", boxSizing: "border-box",
-    outline: "none", background: "#faf7f3"
+    outline: "none", background: "#ffffff"
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f5efe6", fontFamily: "var(--font-sans, sans-serif)" }}>
+    <div style={{ minHeight: "100vh", background: "#ffffff", fontFamily: "var(--font-sans, sans-serif)" }}>
       {/* Navbar */}
       <header style={{
         background: "white", padding: "1rem 2rem", display: "flex",

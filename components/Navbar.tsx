@@ -78,7 +78,7 @@ export default function Navbar() {
   ];
 
   return (
-    <header className={`${styles.navbarContainer} ${isScrolled ? styles.scrolled : ""}`}>
+    <header className={`${styles.navbarContainer} ${isScrolled ? styles.scrolled : ""} ${isOpen ? styles.isOpenHeader : ""}`}>
       <Link href="/#" className={styles.logoLink} onClick={closeMenu}>
         {settings?.logoImage ? (
           <img 

@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
   return (
     <div style={{
       minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-      background: "#f5efe6", fontFamily: "var(--font-sans, sans-serif)"
+      background: "#ffffff", fontFamily: "var(--font-sans, sans-serif)"
     }}>
       <div style={{
         background: "white", borderRadius: 20, padding: "3rem 2.8rem",
@@ -47,7 +47,9 @@ export default function AdminLoginPage() {
             margin: "0 auto 1rem", color: "white", fontWeight: 700, fontSize: "1.2rem"
           }}>A</div>
           <h1 style={{ fontFamily: "var(--font-serif, serif)", fontSize: "1.8rem", fontWeight: 700, margin: 0 }}>Admin Panel</h1>
-          <p style={{ color: "#6d5a4d", fontSize: "0.88rem", marginTop: "0.4rem" }}>Vision of Akash</p>
+          <p style={{ color: "#6d5a4d", fontSize: "0.88rem", marginTop: "0.4rem" }}>
+            Vision <span style={{ fontWeight: 700 }}>of</span> Akash
+          </p>
         </div>
 
         <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>

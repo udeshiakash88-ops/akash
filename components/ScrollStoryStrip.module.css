@@ -11,7 +11,7 @@
   border-radius: 32px;
   background:
     radial-gradient(circle at top left, rgba(176, 125, 98, 0.18), transparent 38%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(245, 239, 230, 0.92));
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88), #ffffff);
   box-shadow: 0 22px 54px rgba(45, 35, 29, 0.08);
 }
 
@@ -49,12 +49,12 @@
   padding: 1.2rem;
   border: 1px solid rgba(176, 125, 98, 0.16);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.72);
+  background: #ffffff;
 }
 
 .featuredCard {
   background: linear-gradient(180deg, rgba(45, 35, 29, 0.95), rgba(84, 66, 55, 0.92));
-  color: #f5efe6;
+  color: #ffffff;
 }
 
 .cardIndex {

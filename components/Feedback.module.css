@@ -52,7 +52,6 @@
 }
 
 .marqueeShell {
-  position: relative;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
@@ -61,6 +60,10 @@
   touch-action: pan-x pinch-zoom;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
+}
+
+.marqueeFrame {
+  position: relative;
 }
 
 .marqueeShell::-webkit-scrollbar {
@@ -87,12 +90,12 @@
 
 .edgeFadeLeft {
   left: 0;
-  background: linear-gradient(90deg, var(--bg-color), rgba(245, 239, 230, 0));
+  background: linear-gradient(90deg, var(--bg-color), rgba(255, 255, 255, 0));
 }
 
 .edgeFadeRight {
   right: 0;
-  background: linear-gradient(270deg, var(--bg-color), rgba(245, 239, 230, 0));
+  background: linear-gradient(270deg, var(--bg-color), rgba(255, 255, 255, 0));
 }
 
 .card {
