@@ -3,29 +3,34 @@
  * that can be used in <img> tags.
  */
 export function getDirectImageUrl(url: string | undefined): string {
-  if (!url) return "";
+  if (!url || typeof url !== 'string') return "";
+
+  const trimmedUrl = url.trim();
 
   // Handle Google Drive links
-  if (url.includes("drive.google.com")) {
+  if (trimmedUrl.includes("drive.google.com")) {
     let fileId = "";
     
-    // Pattern 1: https://drive.google.com/file/d/FILE_ID/view
-    const driveFileMatch = url.match(/\/file\/d\/([^\/?]+)/);
-    if (driveFileMatch && driveFileMatch[1]) {
-      fileId = driveFileMatch[1];
-    } 
+    // Pattern 1: https://drive.google.com/file/d/FILE_ID/view...
     // Pattern 2: https://drive.google.com/open?id=FILE_ID
-    else {
-      const urlObj = new URL(url);
-      fileId = urlObj.searchParams.get("id") || "";
+    // Pattern 3: https://drive.google.com/uc?id=FILE_ID
+    
+    const dMatch = trimmedUrl.match(/\/d\/([^\/?#]+)/);
+    const idParamMatch = trimmedUrl.match(/[?&]id=([^\/?#&]+)/);
+    
+    if (dMatch && dMatch[1]) {
+      fileId = dMatch[1];
+    } else if (idParamMatch && idParamMatch[1]) {
+      fileId = idParamMatch[1];
     }
 
     if (fileId) {
+      // Using the most reliable direct link format
       return `https://drive.google.com/uc?export=view&id=${fileId}`;
     }
   }
 
-  // Add other hosting service conversions here if needed
+  // Handle other potential hosting links if needed
   
-  return url;
+  return trimmedUrl;
 }
